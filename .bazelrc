@@ -1,0 +1,5 @@
+build --java_toolchain=//jdk:java8_toolchain
+build --host_java_toolchain=//jdk:java8_toolchain
+
+build --javabase=//jdk:jdk8
+build --host_javabase=//jdk:jdk8
