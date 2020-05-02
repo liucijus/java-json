@@ -33,20 +33,23 @@ public class Json {
                 writer.write(' ');
             } else if (isClosing(c)) {
                 currentLevel--;
-                writer.write('\n');
-                writer.write(indentFor(currentLevel));
+                if (!addIndent) {
+                    writer.write('\n');
+                    writer.write(indentFor(currentLevel));
+                }
                 writer.write(c);
                 addIndent = false;
             } else if (isOpening(c)) {
                 if (addIndent) {
+                    writer.write('\n');
                     writer.write(indentFor(currentLevel));
                 }
                 writer.write(c);
-                writer.write('\n');
                 currentLevel++;
                 addIndent = true;
             } else if (!Character.isWhitespace(c)) {
                 if (addIndent) {
+                    writer.write('\n');
                     writer.write(indentFor(currentLevel));
                     addIndent = false;
                 }

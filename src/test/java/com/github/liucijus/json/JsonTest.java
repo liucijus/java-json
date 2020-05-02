@@ -11,12 +11,12 @@ import static org.junit.Assert.assertEquals;
 
 public class JsonTest {
     @Test
-    public void empty_file_stays_empty() throws Exception {
+    public void empty_gets_new_line() throws Exception {
         String empty = "";
 
         String result = format(empty);
 
-        assertEquals(empty, result);
+        assertEquals("\n", result);
     }
 
     @Test
@@ -25,7 +25,7 @@ public class JsonTest {
 
         String result = format(emptyObject);
 
-        assertEquals("{\n\n}", result);
+        assertEquals("{}\n", result);
     }
 
     @Test
@@ -34,7 +34,7 @@ public class JsonTest {
 
         String result = format(emptyObject);
 
-        assertEquals("{\n\n}", result);
+        assertEquals("{}\n", result);
     }
 
     @Test
@@ -45,7 +45,7 @@ public class JsonTest {
 
         System.out.println(result);
         System.out.println("[\n    1,\n    2\n]");
-        assertEquals("[\n    1,\n    2\n]", result);
+        assertEquals("[\n    1,\n    2\n]\n", result);
     }
 
     @Test
@@ -57,7 +57,7 @@ public class JsonTest {
         String expected = "{\n" +
                 "    \"a\": 1,\n" +
                 "    \"b\": 2\n" +
-                "}";
+                "}\n";
         assertEquals(expected, result);
     }
 
@@ -67,7 +67,7 @@ public class JsonTest {
 
         String result = format(emptyObject);
 
-        String expected = "\"abc def\"";
+        String expected = "\"abc def\"\n";
         assertEquals(expected, result);
     }
 
@@ -89,7 +89,7 @@ public class JsonTest {
                 "            \"b\"\n" +
                 "        ]\n" +
                 "    }\n" +
-                "]";
+                "]\n";
         assertEquals(expected, result);
     }
 
