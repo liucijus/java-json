@@ -56,7 +56,7 @@ public class Json {
                 writer.write(c);
             }
         }
-
+        writer.write('\n');
         writer.flush();
     }
 
