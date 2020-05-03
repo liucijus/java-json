@@ -14,15 +14,17 @@ public class Json {
 
         int c = -1;
         int currentLevel = 0;
-        boolean stringValue = false;
         boolean addIndent = false;
-        while ((c = reader.read()) != -1) {
-            if (stringValue) {
-                if (isString(c)) {
-                    stringValue = false;
-                }
-                writer.write(c);
 
+        while ((c = reader.read()) != -1) {
+            if (isString(c)) {
+                if (addIndent) {
+                    writer.write('\n');
+                    writer.write(indentFor(currentLevel));
+                    addIndent = false;
+                }
+                String value = readStringValue(reader);
+                writer.write(value);
             } else if (isComma(c)) {
                 writer.write(c);
                 writer.write('\n');
@@ -53,13 +55,22 @@ public class Json {
                     addIndent = false;
                 }
 
-                if (isString(c))
-                    stringValue = true;
                 writer.write(c);
             }
         }
         writer.write('\n');
         writer.flush();
+    }
+
+    private static String readStringValue(BufferedReader reader) throws IOException {
+        char c = '"';
+        StringBuilder builder = new StringBuilder();
+        builder.append(c);
+        while ((c = (char) reader.read()) != '"') {
+            builder.append(c);
+        }
+        builder.append('"');
+        return builder.toString();
     }
 
     private static boolean isCollon(int c) {
