@@ -23,8 +23,7 @@ public class Json {
                 }
                 writer.write(c);
 
-            } else
-            if (isComma(c)) {
+            } else if (isComma(c)) {
                 writer.write(c);
                 writer.write('\n');
                 writer.write(indentFor(currentLevel));
