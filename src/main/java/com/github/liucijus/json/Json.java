@@ -2,21 +2,31 @@ package com.github.liucijus.json;
 
 import java.io.*;
 import java.util.Arrays;
+import java.util.Map;
+
+import static java.util.stream.Collectors.joining;
 
 public class Json {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
         parse(System.in, System.out);
     }
 
-    public static void parse(InputStream inputStream, OutputStream outputStream) throws IOException {
+    public static void parse(InputStream inputStream, OutputStream outputStream) throws Exception {
+        parse(inputStream, outputStream, new NoOpTransformer());
+    }
+
+    public static void parse(InputStream inputStream, OutputStream outputStream, StringPropertyTransformer transformer)
+            throws IOException, IllegalAccessException {
+
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         Writer writer = new OutputStreamWriter(outputStream);
 
-        int c = -1;
+        int c;
         int currentLevel = 0;
         boolean addIndent = false;
 
-        while ((c = reader.read()) != -1) {
+        while ((c = skipWhitespace(reader)) != -1) {
+            // fixme: move to move declarative state machine processing; smaller methods
             if (isString(c)) {
                 if (addIndent) {
                     writer.write('\n');
@@ -24,7 +34,13 @@ public class Json {
                     addIndent = false;
                 }
                 String value = readStringValue(reader);
-                writer.write(value);
+
+                if (transformer.appliesTo(value)) {
+                    transform(transformer, reader, writer, currentLevel, value);
+                } else {
+                    writer.write(asJsonString(value));
+                }
+
             } else if (isComma(c)) {
                 writer.write(c);
                 writer.write('\n');
@@ -48,7 +64,7 @@ public class Json {
                 writer.write(c);
                 currentLevel++;
                 addIndent = true;
-            } else if (!Character.isWhitespace(c)) {
+            } else {
                 if (addIndent) {
                     writer.write('\n');
                     writer.write(indentFor(currentLevel));
@@ -62,14 +78,56 @@ public class Json {
         writer.flush();
     }
 
-    private static String readStringValue(BufferedReader reader) throws IOException {
-        char c = '"';
+    private static void transform(
+            StringPropertyTransformer transformer,
+            BufferedReader reader,
+            Writer writer,
+            int currentLevel,
+            String value)
+            throws IOException, IllegalAccessException {
+        // fixme: currently only happy path implementation
+        int c = skipWhitespace(reader);
+        reader.mark(1000);
+
+        if (isCollon(c)) {
+            c = skipWhitespace(reader);
+            if (isString(c)) {
+                String propertyValue = readStringValue(reader);
+
+                Map<String, String> modifiedProperties = transformer.transform(value, propertyValue);
+                if (modifiedProperties.isEmpty()) {
+                    trySkipComma(reader);
+                } else {
+                    String update = modifiedProperties.entrySet().stream()
+                            .map(entry -> asJsonString(entry.getKey()) + ": " + asJsonString(entry.getValue()))
+                            .collect(joining(",\n" + String.valueOf(indentFor(currentLevel))));
+                    writer.write(update);
+                }
+            } else {
+                throw new IllegalAccessException();
+            }
+        } else {
+            reader.reset();
+        }
+    }
+
+    private static void trySkipComma(BufferedReader reader) throws IOException {
+        reader.mark(1000);
+        int possiblyComma = skipWhitespace(reader);
+        if (possiblyComma != ',')
+            reader.reset();
+    }
+
+    private static String asJsonString(String value) {
+        return "\"" + value + "\"";
+    }
+
+    private static String readStringValue(Reader reader) throws IOException {
         StringBuilder builder = new StringBuilder();
-        builder.append(c);
+        char c;
         while ((c = (char) reader.read()) != '"') {
             builder.append(c);
         }
-        builder.append('"');
         return builder.toString();
     }
 
@@ -97,5 +155,14 @@ public class Json {
 
     private static boolean isString(int c) {
         return c == '"';
+    }
+
+    private static int skipWhitespace(Reader reader) throws IOException {
+        int c;
+        while ((c = reader.read()) != -1) {
+            if (!Character.isWhitespace(c))
+                return (char) c;
+        }
+        return -1;
     }
 }

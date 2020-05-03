@@ -2,14 +2,10 @@ package com.github.liucijus.json;
 
 import org.junit.Test;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-
+import static com.github.liucijus.json.JsonDriver.format;
 import static org.junit.Assert.assertEquals;
 
-public class JsonTest {
+public class JsonFormatterTest {
     @Test
     public void empty_gets_new_line() throws Exception {
         String empty = "";
@@ -92,14 +88,4 @@ public class JsonTest {
                 "]\n";
         assertEquals(expected, result);
     }
-
-    private String format(String input) throws Exception {
-        InputStream inputStream = new ByteArrayInputStream(input.getBytes());
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-        Json.parse(inputStream, outputStream);
-
-        return new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
-    }
-
 }
